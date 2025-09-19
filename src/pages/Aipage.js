@@ -1,6 +1,6 @@
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // --- helpers to parse/normalize Gemini output ---
 const extractJsonFromText = (text) => {
@@ -66,6 +66,8 @@ export default function Aipage() {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysis, setAnalysis] = useState(null);
     const [error, setError] = useState('');
+    const cameraInputRef = useRef(null);
+    const galleryInputRef = useRef(null);
 
     useEffect(() => () => {
         if (previewUrl) {
@@ -100,6 +102,9 @@ export default function Aipage() {
 
         const nextPreview = URL.createObjectURL(file);
         setPreviewUrl(nextPreview);
+
+        // Reset input value so that the same file can be selected again if needed
+        event.target.value = '';
     };
 
     const resetForm = () => {
@@ -112,6 +117,14 @@ export default function Aipage() {
         setNotes('');
         setAnalysis(null);
         setError('');
+
+        if (cameraInputRef.current) {
+            cameraInputRef.current.value = '';
+        }
+
+        if (galleryInputRef.current) {
+            galleryInputRef.current.value = '';
+        }
     };
 
     const handleAnalyze = async (event) => {
@@ -232,16 +245,37 @@ export default function Aipage() {
                                         <p className="text-xs">รองรับไฟล์ .jpg .jpeg .png ขนาดไม่เกิน 8MB</p>
                                     </div>
                                 )}
-                                <label className="inline-flex cursor-pointer items-center justify-center rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-3 font-semibold text-white shadow-md transition hover:shadow-xl">
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        capture="environment"
-                                        className="hidden"
-                                        onChange={handleFileChange}
-                                    />
-                                    {selectedFile ? 'เลือกรูปใหม่' : 'อัปโหลดหรือถ่ายภาพ'}
-                                </label>
+                                <div className="flex flex-col items-center gap-3 sm:flex-row">
+                                    <button
+                                        type="button"
+                                        onClick={() => cameraInputRef.current?.click()}
+                                        className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 px-6 py-3 font-semibold text-white shadow-md transition hover:shadow-xl"
+                                    >
+                                        {selectedFile ? 'ถ่ายภาพใหม่' : 'ถ่ายภาพด้วยกล้อง'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => galleryInputRef.current?.click()}
+                                        className="inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 font-semibold text-purple-600 shadow-md transition hover:shadow-xl"
+                                    >
+                                        {selectedFile ? 'เลือกรูปอื่น' : 'เลือกจากแกลเลอรี'}
+                                    </button>
+                                </div>
+                                <input
+                                    ref={cameraInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    capture="environment"
+                                    className="hidden"
+                                    onChange={handleFileChange}
+                                />
+                                <input
+                                    ref={galleryInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleFileChange}
+                                />
                                 {selectedFile && (
                                     <button
                                         type="button"
